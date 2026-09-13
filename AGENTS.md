@@ -15,3 +15,18 @@
 ## 原项目依据
 
 上游城市的项目事实与坐标约定见 provenance/UPSTREAM_AGENTS.md；运行与许可说明见 README.md。
+
+## 推送命令
+
+在本项目仓库目录内，完成验证并提交当前大版本后执行：
+
+```sh
+if [ "$(gh repo view Starmiie/shenzhen-paper-flight-private --json isPrivate --jq .isPrivate)" = "true" ]; then
+  git push origin main
+else
+  echo "未确认仓库为私有，已停止备份。" >&2
+  exit 1
+fi
+```
+
+不得强制推送；远端出现新提交时先检查差异并保留双方工作。
