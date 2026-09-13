@@ -1,0 +1,2 @@
+import {defineConfig} from 'vite';
+export default defineConfig({server:{host:'127.0.0.1',hmr:false},build:{chunkSizeWarningLimit:1600}});
