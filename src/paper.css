@@ -35,4 +35,4 @@
 .photographing #bay-route,.clean #bay-route,.clean #landmark-pins{display:none}
 @media(max-width:800px){#bay-route{left:22px;top:100px}#bay-route>small{font-size:9px}#bay-route button{font-size:10px;padding:7px 9px}#bay-route p,#compass{display:none}.landmark-pin{font-size:10px}.landmark-pin small{display:none}}
 #journey .aside-head{position:sticky;top:-28px;background:#f8f4e9;z-index:2;padding:14px 0;margin-top:-14px}
-.reading #map-section .map-wrap{height:110px;overflow:hidden}.reading #map-section .map-wrap canvas{height:110px;object-fit:cover}
+.reading #map-section .map-wrap{height:110px;overflow:hidden}.reading #map-section .map-wrap canvas{height:110px;object-fit:fill}
