@@ -164,7 +164,7 @@ export function createArchitectureMaterials(scene:Scene){
    });
    entry.texture.name='architecture:'+kind;
    entry.texture.wrapU=Texture.WRAP_ADDRESSMODE;entry.texture.wrapV=Texture.WRAP_ADDRESSMODE;
-   entry.texture.anisotropicFilteringLevel=2;
+   entry.texture.anisotropicFilteringLevel=8;
    entry.mask=new Texture(entry.maskUrl,scene,{noMipmap:false,invertY:false,samplingMode:Texture.TRILINEAR_SAMPLINGMODE,gammaSpace:true,
     onLoad:()=>queueMicrotask(()=>{
      if(scene.isDisposed||!entry.mask)return;
@@ -182,7 +182,7 @@ export function createArchitectureMaterials(scene:Scene){
    });
    entry.mask.name='architecture:'+kind+'-windows';
    entry.mask.wrapU=Texture.WRAP_ADDRESSMODE;entry.mask.wrapV=Texture.WRAP_ADDRESSMODE;
-   entry.mask.anisotropicFilteringLevel=2;
+   entry.mask.anisotropicFilteringLevel=8;
   }else if(!slot.fallback&&slot.state!=='ready'&&fallback){
    slot.fallback=fallback;
    for(const target of slot.users)target.albedoTexture=fallback;
@@ -211,7 +211,7 @@ export function createArchitectureMaterials(scene:Scene){
   material.emissiveColor=aligned?new Color3(1,.94,.83):Color3.Black();
   if(profile.lineEmission){
    material.emissiveColor=new Color3(...profile.lineEmission);
-   material.emissiveIntensity=mode==='day'?0:night?2.8:1.2;
+   material.emissiveIntensity=mode==='day'?0:night?.85:.18;
   }
   const windows=tencentLights.get(material);if(windows)windows.mode=mode;
   material.environmentIntensity=profile.environment??.96;
@@ -237,7 +237,7 @@ export function createArchitectureMaterials(scene:Scene){
   // These profiles are actual solid glazing meshes, not mixed wall atlases.
   // Keep each landmark hue; lower diffuse backing so sky Fresnel is legible.
   const solidGlazing=/(?:glass|window)$/.test(id)||id==='city-shopfront';
-  if(solidGlazing){material.albedoColor.scaleInPlace(.42);material.metallic=0;material.roughness=Math.max(.14,Math.min(.23,profile.roughness*.55));}
+  if(solidGlazing){material.albedoColor.scaleInPlace(.42);material.metallic=0;material.roughness=Math.max(.26,Math.min(.38,profile.roughness*.75));}
   material.specularIntensity=1;material.metallicReflectanceColor=Color3.White();
   material.enableSpecularAntiAliasing=true;
   material.indexOfRefraction=1.5;material.metallicF0Factor=1;
@@ -296,7 +296,7 @@ export function createArchitectureMaterials(scene:Scene){
 
  function stats(){
   return {managedMaterials:materials.size,materialBudget:31,assignments,night,withoutUV,
-   landmarkLighting:{basis:'user_requested_artistic',dayEmission:0,tencentWindowMaterials:tencentLights.size,tencentWindowHDR:mode==='day'?0:night?1.5:.55,bambooRibHDR:mode==='day'?0:night?2.8:1.2},
+   landmarkLighting:{basis:'user_requested_artistic',dayEmission:0,tencentWindowMaterials:tencentLights.size,tencentWindowHDR:mode==='day'?0:night?1.5:.55,bambooRibHDR:mode==='day'?0:night?.85:.18},
    repairedOrdinarySurfaces:{...repairs},retiredMaterials,releasedTextures,
    profiles:[...materials.keys()],
    sharedAlbedoTextures:(Object.keys(TEXTURE_URLS) as TextureKind[]).map(kind=>{const slot=textures.get(kind);return {kind,url:TEXTURE_URLS[kind],state:slot?.state??'not-requested',

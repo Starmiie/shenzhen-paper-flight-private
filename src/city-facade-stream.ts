@@ -1,6 +1,6 @@
 import {ImportMeshAsync,Quaternion,PBRMaterial,type AbstractMesh,type Scene} from '@babylonjs/core';
 type Tile={id:string;x:number;z:number;bytes:number};
-type Resident={tile:Tile;meshes:AbstractMesh[]};
+type Resident={tile:Tile;meshes:AbstractMesh[];shown:boolean};
 /** Keep original Blender geometry, but decode only nearby 640 m tiles. */
 export class CityFacadeStream{
  tiles:Tile[]=[];resident=new Map<string,Resident>();pending=false;focus={x:0,z:0};visible=true;failed=new Set<string>();
@@ -13,12 +13,12 @@ export class CityFacadeStream{
  /** Cheap per-frame motion signal; tile visibility still updates at a lower rate. */
  noteFocusMotion(){this.focusChangedAt=performance.now();}
  private async load(tile:Tile){const result=await ImportMeshAsync('/city/facade-tiles/'+tile.id+'.glb',this.scene);result.meshes[0].rotationQuaternion=Quaternion.Identity();for(const mesh of result.meshes){mesh.isPickable=false;mesh.receiveShadows=true;if(mesh.material instanceof PBRMaterial){mesh.material.environmentIntensity=1;mesh.material.forceIrradianceInFragment=true;mesh.material.maxSimultaneousLights=8;}if(mesh.getTotalVertices())mesh.freezeWorldMatrix();}
-  this.applyArchitecture?.(result.meshes,'facade-tiles/'+tile.id);this.resident.set(tile.id,{tile,meshes:result.meshes});
+  this.applyArchitecture?.(result.meshes,'facade-tiles/'+tile.id);this.resident.set(tile.id,{tile,meshes:result.meshes,shown:false});
  }
  update(x:number,z:number,visible=true,loadDelay=this.loadDelay){if(this.disposed)return;
   if(Math.hypot(x-this.focus.x,z-this.focus.z)>1)this.focusChangedAt=performance.now();
   this.focus={x,z};this.visible=visible;this.loadDelay=loadDelay;
-  for(const [id,r] of this.resident){const distance=Math.hypot(r.tile.x-x,r.tile.z-z);if(distance>1500){for(const mesh of [...r.meshes].reverse())mesh.dispose(false,!this.applyArchitecture);this.resident.delete(id);}else r.meshes[0].setEnabled(visible&&distance<700);}
+  for(const [id,r] of this.resident){const distance=Math.hypot(r.tile.x-x,r.tile.z-z);if(distance>1500){for(const mesh of [...r.meshes].reverse())mesh.dispose(false,!this.applyArchitecture);this.resident.delete(id);}else {r.shown=visible&&distance<(r.shown?950:800);r.meshes[0].setEnabled(r.shown);}}
   this.queuePump();
  }
  private queuePump(){
@@ -30,7 +30,7 @@ export class CityFacadeStream{
   if(remaining>0)this.pumpTimer=setTimeout(()=>{this.pumpTimer=null;this.queuePump();},remaining);
   else void this.pump();
  }
- private async pump(){const tile=this.near(1050).find(t=>!this.resident.has(t.id)&&!this.failed.has(t.id));if(!tile)return;this.pending=true;
+ private async pump(){const tile=this.near(1250).find(t=>!this.resident.has(t.id)&&!this.failed.has(t.id));if(!tile)return;this.pending=true;
   try{await this.load(tile);}catch(error){this.failed.add(tile.id);console.warn('精细立面稍后可刷新重试',tile.id,error);}finally{this.pending=false;this.update(this.focus.x,this.focus.z,this.visible);this.changed();}
  }
  get meshes(){return [...this.resident.values()].flatMap(r=>r.meshes.filter(m=>m.getTotalVertices()>0&&m.isEnabled()));}

@@ -1,3 +1,4 @@
+import {PaperTrail} from './paper-trail.ts';
 import {Engine,Scene,Vector3,Color3,Color4,FreeCamera,HemisphericLight,DirectionalLight,ShadowGenerator,MeshBuilder,Mesh,StandardMaterial,PBRMaterial,Quaternion,ImportMeshAsync,DefaultRenderingPipeline,MirrorTexture,Plane,MeshoptCompression,VertexData,TransformNode,Ray,type AbstractMesh} from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 import './city-gltf-streaming.ts';
@@ -29,7 +30,7 @@ export class PaperWorld{
  engine:Engine;scene:Scene;camera:FreeCamera;sun:DirectionalLight;hemi:HemisphericLight;pipeline:DefaultRenderingPipeline;shadows:ShadowGenerator;
  data!:CityData;places:Place[]=[];ready=false;started=false;photo=false;hover=false;minutes=17*60+20;elapsed=0;period:Period='sunset';
  position=new Vector3(-4900,200,-1800);yaw=-.35;pitch=0;speed=28;bank=0;keys=new Set<string>();photoYaw=0;photoPitch=.18;photoDistance=32;
- plane:TransformNode;onTick:()=>void=()=>{};onNotice:(s:string)=>void=()=>{};
+ trail:PaperTrail;reading=false;highlighted:AbstractMesh[]=[];plane:TransformNode;onTick:()=>void=()=>{};onNotice:(s:string)=>void=()=>{};
  architecture;diversity;facades:CityFacadeStream|null=null;landscape:CityLandscape|null=null;furniture:CityStreetFurniture|null=null;
  cinematic:Awaited<ReturnType<typeof createCinematicLook>>|null=null;
  water:ReturnType<typeof createBayWater>|null=null;lighting:ReturnType<typeof createPublicLighting>|null=null;
@@ -40,7 +41,7 @@ export class PaperWorld{
  constructor(public canvas:HTMLCanvasElement){
   this.engine=new Engine(canvas,true,{stencil:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});this.resize();
   this.scene=new Scene(this.engine);this.scene.clearColor=new Color4(.65,.64,.65,1);this.scene.fogMode=Scene.FOGMODE_EXP2;
-  this.camera=new FreeCamera('paper-camera',this.position.clone(),this.scene);this.camera.inputs.clear();this.camera.minZ=.6;this.camera.maxZ=21000;this.camera.fov=.88;
+  this.camera=new FreeCamera('paper-camera',this.position.clone(),this.scene);this.camera.inputs.clear();this.camera.minZ=2;this.camera.maxZ=21000;this.camera.fov=.88;
   this.hemi=new HemisphericLight('sky-bounce',Vector3.Up(),this.scene);this.hemi.intensity=.65;
   this.sun=new DirectionalLight('travelling-sun',new Vector3(.95,-.3,.18),this.scene);this.sun.intensity=1.4;
   this.sun.orthoLeft=this.sun.orthoBottom=-850;this.sun.orthoRight=this.sun.orthoTop=850;this.sun.shadowMinZ=1;this.sun.shadowMaxZ=3000;
@@ -50,7 +51,7 @@ export class PaperWorld{
   const mat=new StandardMaterial('fallback-sky',this.scene);mat.backFaceCulling=false;mat.disableDepthWrite=true;mat.disableLighting=true;mat.emissiveColor=new Color3(.7,.65,.65);sky.material=mat;keepSkyInReflections(sky);
   this.architecture=createArchitectureMaterials(this.scene);this.diversity=createFacadeDiversity(this.scene);
   this.waterMirror=new MirrorTexture('bay-reflection',256,this.scene,true);this.waterMirror.mirrorPlane=new Plane(0,-1,0,-.35);this.waterMirror.refreshRate=6;this.waterMirror.blurKernel=3;
-  this.plane=this.makePlane();this.bindControls();window.addEventListener('resize',()=>this.resize());
+  this.plane=this.makePlane();this.trail=new PaperTrail(this.scene);this.bindControls();window.addEventListener('resize',()=>this.resize());
   this.engine.runRenderLoop(()=>{if(!this.ready||document.hidden)return;const dt=Math.min(this.engine.getDeltaTime()/1000,.06);this.update(dt);this.scene.render();this.onTick();});
  }
  resize(){this.engine?.setHardwareScalingLevel(1/Math.min(devicePixelRatio||1,1.3,Math.sqrt(1600*1000/(innerWidth*innerHeight))));this.engine?.resize();}
@@ -91,7 +92,10 @@ export class PaperWorld{
   this.period=period;if(setClock)this.minutes={dawn:6*60+20,day:14*60,sunset:17*60+20,night:23*60}[period];
   const mode=period==='dawn'?'day':period;this.cinematic?.setMode(mode);this.architecture.setMode(mode);this.diversity.setMode(mode);this.signs?.setMode(mode);this.buildingSigns?.setNight(mode==='night');this.lighting?.setMode(mode);this.water?.setMode(mode);this.bamboo?.setMode(mode);this.baypark?.setMode(mode);setLandscapeLightingMode(this.scene,mode);
   applyAntiAliasing(this.pipeline,true);this.pipeline.grainEnabled=false;this.pipeline.chromaticAberrationEnabled=false;this.pipeline.bloomWeight=mode==='night'?.22:.09;
-  this.scene.imageProcessingConfiguration.contrast=1.02;
+  this.scene.imageProcessingConfiguration.contrast=1.0;
+  this.scene.imageProcessingConfiguration.vignetteWeight=.2;
+  if(period==='sunset'){this.hemi.intensity=.25;this.hemi.diffuse.set(.67,.78,.91);this.sun.diffuse.set(1,.77,.52);this.scene.fogColor.set(.64,.57,.61);this.scene.fogDensity=.000075;this.scene.imageProcessingConfiguration.exposure=1.12;}
+
   if(period==='dawn'){this.sun.direction.set(-.8,-.22,.2);this.sun.diffuse.set(1,.78,.58);this.sun.intensity=1.7;this.scene.fogColor.set(.72,.70,.68);this.scene.fogDensity=.000085;this.scene.imageProcessingConfiguration.exposure=1.1;}
   this.detail();
  }
@@ -99,7 +103,7 @@ export class PaperWorld{
   const p=this.position;this.lastDetail.copyFrom(p);this.facades?.update(p.x,p.z,true,0);
   for(const b of this.blocks)b.mesh.setEnabled(Math.hypot(b.x-p.x,b.z-p.z)<(b.road?7200:14000));
   this.landscape?.update(p.x,p.z,p.y>150,true);this.furniture?.update(p.x,p.z,p.y>150);this.lighting?.update(p.x,p.z,true);
-  this.sun.position.set(p.x-this.sun.direction.x*1500,700,p.z-this.sun.direction.z*1500);
+  this.sun.position.set(Math.round((p.x-this.sun.direction.x*1500)/4)*4,700,Math.round((p.z-this.sun.direction.z*1500)/4)*4);
   this.shadows.getShadowMap()!.renderList=[...this.staticMeshes.filter(m=>m.isEnabled()&&Vector3.Distance(m.getBoundingInfo().boundingSphere.centerWorld,p)<1100),...(this.landscape?.casters??[]),...(this.facades?.shadowMeshes??[])];
   this.waterMirror.renderList=this.scene.meshes.filter(m=>m.isEnabled()&&m.getTotalVertices()>0&&m.name!=='terrain_water'&&!m.material?.hasTexture(this.waterMirror)&&(!m.name.includes('paper'))&&Vector3.Distance(m.getBoundingInfo().boundingSphere.centerWorld,p)<5000);
   const sky=this.scene.getMeshByName('atmosphere');if(sky)this.waterMirror.renderList.push(sky);
@@ -122,22 +126,27 @@ export class PaperWorld{
   const boom=this.camera.position.subtract(this.position),distance=boom.length();if(distance>1){const hit=this.scene.pickWithRay(new Ray(this.position,boom.normalize(),distance),m=>this.collidable.includes(m),false);if(hit?.hit)this.camera.position.copyFrom(this.position.add(boom.scale(Math.max(1,hit.distance-3))));}
  }
  private update(dt:number){
-  if(this.started&&!this.photo){
+  if(this.started&&!this.photo&&!this.reading){
    const turn=Number(this.keys.has('KeyD')||this.keys.has('ArrowRight'))-Number(this.keys.has('KeyA')||this.keys.has('ArrowLeft'));
    const climb=Number(this.keys.has('KeyW')||this.keys.has('ArrowUp'))-Number(this.keys.has('KeyS')||this.keys.has('ArrowDown'));
    this.yaw+=turn*dt*.65;this.pitch=clamp(this.pitch+climb*dt*.42,-.65,.65);if(!climb)this.pitch*=Math.exp(-dt*.35);
    this.bank+=(turn*.38-this.bank)*(1-Math.exp(-dt*3));const desired=this.hover?0:this.keys.has('ShiftLeft')||this.keys.has('ShiftRight')?180:32;this.speed+=(desired-this.speed)*(1-Math.exp(-dt*1.3));
    const direction=new Vector3(Math.sin(this.yaw)*Math.cos(this.pitch),Math.sin(this.pitch),Math.cos(this.yaw)*Math.cos(this.pitch));
    const step=direction.scale(this.speed*dt),next=this.position.add(step);const hit=this.scene.pickWithRay(new Ray(this.position,direction,Math.max(14,step.length()+10)),m=>this.collidable.includes(m),true);
-   if(!hit?.hit)this.position.copyFrom(next);else{this.speed=0;this.position.y+=dt*12;this.onNotice('轻轻抬升，绕过眼前的建筑');}
+   if(!hit?.hit)this.position.copyFrom(next);else if(!this.hover){this.speed=0;this.position.y+=dt*12;this.onNotice('轻轻抬升，绕过眼前的建筑');}
    const ground=this.heightAt(this.position.x,this.position.z);this.position.y=clamp(this.position.y,ground+12,1500);
    const [xmin,zmin,xmax,zmax]=this.data.meta.extent;const oldX=this.position.x,oldZ=this.position.z;this.position.x=clamp(oldX,xmin+30,xmax-30);this.position.z=clamp(oldZ,zmin+30,zmax-30);if(oldX!==this.position.x||oldZ!==this.position.z){this.yaw+=dt*.8;this.onNotice('来到原场景边缘，轻转方向继续旅行');}
    this.elapsed+=dt;this.minutes=(this.minutes+dt/12)%1440;this.cycleTick+=dt;
    if(this.cycleTick>1){this.cycleTick=0;const h=this.minutes/60;const next:Period=h>=5&&h<9?'dawn':h>=9&&h<16.5?'day':h>=16.5&&h<19.5?'sunset':'night';if(next!==this.period)this.setPeriod(next,false);this.sun.direction.y=-Math.max(.12,Math.sin((h-6)/12*Math.PI)*.8);}
   }
   if(new URLSearchParams(location.search).has('qa')&&this.elapsed>=this.qaNext){this.qaNext=this.elapsed+10;console.info('PAPER_QA',JSON.stringify(this.diagnostics()));}
-  this.plane.position.copyFrom(this.position);this.plane.rotation.set(-this.pitch,this.yaw,-this.bank);this.water?.update(this.elapsed);
+  this.plane.position.copyFrom(this.position);this.plane.rotation.set(-this.pitch,this.yaw,-this.bank);this.water?.update(this.elapsed);this.trail.update(dt,this.plane,this.camera.position,this.started&&!this.reading&&!this.hover&&this.speed>3,this.photo||!this.started);
   if(Vector3.Distance(this.lastDetail,this.position)>45)this.detail();this.updateCamera(dt);
+ }
+ highlight(id:string|null){
+  for(const m of this.highlighted)m.renderOverlay=false;
+  this.highlighted=id?this.staticMeshes.filter(m=>m.name.startsWith('landmark_'+id+'_')||m.name.startsWith('detail_'+id+'_')):[];
+  for(const m of this.highlighted){m.overlayColor=new Color3(1,.82,.45);m.overlayAlpha=.18;m.renderOverlay=true;}
  }
  get clock(){return `${String(Math.floor(this.minutes/60)).padStart(2,'0')}:${String(Math.floor(this.minutes%60)).padStart(2,'0')}`;}
  nearest(){return [...this.places].sort((a,b)=>Math.hypot(a.x-this.position.x,a.z-this.position.z)-Math.hypot(b.x-this.position.x,b.z-this.position.z))[0];}

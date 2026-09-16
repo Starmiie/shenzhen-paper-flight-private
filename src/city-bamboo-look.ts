@@ -19,7 +19,7 @@ export const BAMBOO_LOOK_TARGET={
 export const BAMBOO_LOOK_DEFAULTS={
  lowerFullHeight:36,
  lowerFadeHeight:78,
- glassRoughness:.205,
+ glassRoughness:.29,
  glassPanelVariation:.045,
  glassNormalStrength:.008,
  glassDiffuse:.74,
@@ -30,7 +30,7 @@ export const BAMBOO_LOOK_DEFAULTS={
  stonePanelHeight:.75,
  stoneJointWidth:.012,
  stoneJointNormal:.055,
- metalRoughness:.29,
+ metalRoughness:.42,
  metalVariation:.055,
  contactShade:.24,
  lowerRibEmission:.13,

@@ -326,7 +326,7 @@ vec4 cityFacadeAlbedo(vec2 uv){
  float unresolved=0.,rowsUnresolved=0.;
  #ifdef CITY_FACADE_GRADIENT
  vec2 cellDX=dFdx(pattern*grid),cellDY=dFdy(pattern*grid);
- unresolved=smoothstep(.35,1.2,max(length(cellDX),length(cellDY)));
+ unresolved=smoothstep(.22,.85,max(length(cellDX),length(cellDY)));
  rowsUnresolved=smoothstep(.35,1.2,length(vec2(cellDX.y,cellDY.y)));
  #endif
  // World-Y layering, see FACADE_RELIEF. city_mesh.py writes v = z/24 and the
@@ -362,7 +362,7 @@ vec4 cityFacadeAlbedo(vec2 uv){
  if(family>.5)meanGlass=.475;if(family>1.5)meanGlass=.311;if(family>2.5)meanGlass=.406;
  if(family>3.5)meanGlass=.355;if(family>4.5)meanGlass=.232;if(family>5.5)meanGlass=.263;if(family>6.5)meanGlass=.411;
  vec3 meanSurface=mix(vCityFacadeTheme*groundWall,vCityFacadeGlass.rgb*.32,meanGlass);
- surface=mix(surface,meanSurface,unresolved*.82);
+ surface=mix(surface,meanSurface,unresolved);
  glazing=mix(glazing,meanGlass,unresolved);
  #endif
  // Single-lobe approximation: once panes share a pixel, preserve the

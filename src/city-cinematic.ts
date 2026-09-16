@@ -48,7 +48,8 @@ export function applyModeFinish(pipeline:DefaultRenderingPipeline,ip:ImageProces
  * and FXAA does soften; geometry edges are far and thin. 4× MSAA there cost
  * ~7 ms of GPU at 1080p against ~1 ms for FXAA, so the aerial view trades
  * multisampling for FXAA and the street keeps MSAA for crisp near edges. */
-export const AERIAL_FINISH={msaa:1,fxaa:true} as const;
+// Paper-flight sample combines 2× edge coverage with FXAA and shader far-field filtering.
+export const AERIAL_FINISH={msaa:2,fxaa:true} as const;
 export function applyAntiAliasing(pipeline:DefaultRenderingPipeline,aerial:boolean){
  const {msaa,fxaa}=aerial?AERIAL_FINISH:CINEMATIC_FINISH;
  if(pipeline.samples===msaa&&pipeline.fxaaEnabled===fxaa)return false;
