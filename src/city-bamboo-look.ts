@@ -131,6 +131,14 @@ float bambooPixelSpan=max(fwidth(bambooPanel.x),fwidth(bambooPanel.y));
 float bambooDetail=1.-smoothstep(.18,.65,bambooPixelSpan);
 float bambooPanelTone=bambooHash(floor(bambooPanel));
 ${glass?`
+// Broad, derivative-filtered structure survives when the thin source meshes retire.
+vec2 broadPanel=vec2((bambooAngle/6.28318530718+.5)*28.,bambooPosition.y/9.);
+vec2 broadAA=max(fwidth(broadPanel),vec2(.002));
+vec2 broadEdge=min(fract(broadPanel),1.-fract(broadPanel));
+vec2 broadLine=1.-smoothstep(vec2(.045)-broadAA,vec2(.045)+broadAA,broadEdge);
+vec2 broadResolved=1.-smoothstep(vec2(.15),vec2(.5),broadAA);
+broadLine=mix(vec2(.09),broadLine,broadResolved);
+surfaceAlbedo=mix(surfaceAlbedo,vec3(.38,.45,.45),max(broadLine.x*.38,broadLine.y*.16));
 vec2 bambooEdge=min(fract(bambooPanel),1.-fract(bambooPanel));
 float bambooRibShade=1.-smoothstep(.06,.19,bambooEdge.x);
 float bambooBandShade=1.-smoothstep(.025,.13,bambooEdge.y);

@@ -320,13 +320,13 @@ vec4 cityFacadeAlbedo(vec2 uv){
  // Alpha is a linear mixture of glass (.333) and wall (.780), not a
  // binary class after mip filtering. Recover area coverage continuously.
  float glazing=clamp((.780-facadeTexel.a)/(.780-.333),0.,1.);
- float glassRoughness=clamp(vCityFacadeGlass.a*.52,.14,.24);
+ float glassRoughness=clamp(vCityFacadeGlass.a*1.1,.34,.50);
  float luminance=dot(toLinearSpace(facadeTexel.rgb),vec3(.2126,.7152,.0722));
  float wallDetail=clamp(luminance/.48,.78,1.10),glassDetail=clamp(luminance/.105,.94,1.06);
  float unresolved=0.,rowsUnresolved=0.;
  #ifdef CITY_FACADE_GRADIENT
  vec2 cellDX=dFdx(pattern*grid),cellDY=dFdy(pattern*grid);
- unresolved=smoothstep(.22,.85,max(length(cellDX),length(cellDY)));
+ unresolved=smoothstep(.12,.50,max(length(cellDX),length(cellDY)));
  rowsUnresolved=smoothstep(.35,1.2,length(vec2(cellDX.y,cellDY.y)));
  #endif
  // World-Y layering, see FACADE_RELIEF. city_mesh.py writes v = z/24 and the
@@ -369,7 +369,7 @@ vec4 cityFacadeAlbedo(vec2 uv){
  // narrow glass reflection and scale its F0 by covered area. Averaging
  // roughness with masonry had erased skyline reflections at drone distance.
  float glassLobe=smoothstep(.03,.20,glazing);
- cityFacadeRoughness=mix(.78,glassRoughness,glassLobe);
+ cityFacadeRoughness=mix(mix(.78,glassRoughness,glassLobe),.62,unresolved);
  cityFacadeF0=mix(.04,.04*glazing,glassLobe);
  cityFacadeSurfaceLinear=clamp(surface,vec3(.009),vec3(.82));
  cityFacadeGlazing=glazing;cityFacadeSolid=plant;cityFacadeCell=floor(pattern*grid);cityFacadeResolved=1.-unresolved;
@@ -500,7 +500,7 @@ export function createFacadeDiversity(scene:Scene,baseURL='/city/textures/archit
  const loaded=()=>queueMicrotask(()=>{if(scene.isDisposed)return;shared.ready=Boolean(shared.albedo?.isReady()&&shared.windows?.isReady());for(const p of plugins.values())p.markAllDefinesAsDirty();});
  for(const [key,file] of [['albedo','facade-atlas.png'],['windows','facade-windows.png']] as const){
   shared[key]=new Texture(baseURL+'/'+file,scene,{invertY:false,noMipmap:false,gammaSpace:true,samplingMode:Texture.TRILINEAR_SAMPLINGMODE,onLoad:loaded,onError:message=>{shared.failures.push(file+': '+message);shared.ready=false;for(const p of plugins.values())p.markAllDefinesAsDirty();}});
-  shared[key].wrapU=Texture.CLAMP_ADDRESSMODE;shared[key].wrapV=Texture.CLAMP_ADDRESSMODE;shared[key].anisotropicFilteringLevel=4;
+  shared[key].wrapU=Texture.CLAMP_ADDRESSMODE;shared[key].wrapV=Texture.CLAMP_ADDRESSMODE;shared[key].anisotropicFilteringLevel=8;
  }
  function applyMeshes(meshes:AbstractMesh[],assetName:string){if(!/(?:^|\/)buildings(?:\.glb)?$/.test(assetName))return;
   for(const mesh of meshes){if(!mesh.isVerticesDataPresent(VertexBuffer.UV2Kind)||!/^block_-?\d+_-?\d+_/.test(mesh.name)||!(mesh.material instanceof PBRMaterial))continue;

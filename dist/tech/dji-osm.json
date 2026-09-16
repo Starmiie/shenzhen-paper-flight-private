@@ -1,0 +1,82 @@
+{
+  "version": "0.6",
+  "generator": "openstreetmap-cgimap 2.1.0 (3498743 spike-06.openstreetmap.org)",
+  "copyright": "OpenStreetMap and contributors",
+  "attribution": "http://www.openstreetmap.org/copyright",
+  "license": "http://opendatacommons.org/licenses/odbl/1-0/",
+  "elements": [
+    {
+      "type": "node",
+      "id": 9406493412,
+      "lat": 22.5809387,
+      "lon": 113.9388917,
+      "timestamp": "2023-03-05T18:35:16Z",
+      "version": 3,
+      "changeset": 133336530,
+      "user": "XD346",
+      "uid": 4892967
+    },
+    {
+      "type": "node",
+      "id": 9909317149,
+      "lat": 22.5798299,
+      "lon": 113.9370633,
+      "timestamp": "2023-03-05T18:35:16Z",
+      "version": 3,
+      "changeset": 133336530,
+      "user": "XD346",
+      "uid": 4892967
+    },
+    {
+      "type": "node",
+      "id": 9909317150,
+      "lat": 22.5808985,
+      "lon": 113.9370361,
+      "timestamp": "2023-03-05T18:35:16Z",
+      "version": 3,
+      "changeset": 133336530,
+      "user": "XD346",
+      "uid": 4892967
+    },
+    {
+      "type": "node",
+      "id": 9909317151,
+      "lat": 22.5798702,
+      "lon": 113.9389189,
+      "timestamp": "2023-03-05T18:35:16Z",
+      "version": 3,
+      "changeset": 133336530,
+      "user": "XD346",
+      "uid": 4892967
+    },
+    {
+      "type": "way",
+      "id": 1019891882,
+      "timestamp": "2023-08-27T07:18:38Z",
+      "version": 7,
+      "changeset": 140438952,
+      "user": "XD346",
+      "uid": 4892967,
+      "nodes": [
+        9909317149,
+        9909317150,
+        9406493412,
+        9909317151,
+        9909317149
+      ],
+      "tags": {
+        "addr:city": "深圳市",
+        "addr:district": "南山区",
+        "addr:housenumber": "55",
+        "addr:province": "广东省",
+        "addr:street": "仙元路",
+        "alt_name": "大疆创新总部;天空之城大厦;天空之城",
+        "alt_name:en": "DJI Headquarters",
+        "landuse": "commercial",
+        "name": "大疆天空之城 DJI Sky City",
+        "name:en": "DJI Sky City",
+        "name:zh": "大疆天空之城"
+      }
+    }
+  ]
+}

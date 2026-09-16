@@ -46,7 +46,7 @@ export class TencentWindowLighting extends MaterialPluginBase{
  override isCompatible(language:ShaderLanguage){return language===ShaderLanguage.GLSL;}
  override getAttributes(attributes:string[]){if(!attributes.includes(WINDOW_ATTRIBUTE))attributes.push(WINDOW_ATTRIBUTE);}
  override getUniforms(){return {ubo:[{name:'tencentWindowHDR',size:1,type:'float'}],fragment:'uniform float tencentWindowHDR;'};}
- override bindForSubMesh(buffer:UniformBuffer){buffer.updateFloat('tencentWindowHDR',this.mode==='day'?0:this.mode==='night'?1.5:.55);}
+ override bindForSubMesh(buffer:UniformBuffer){buffer.updateFloat('tencentWindowHDR',this.mode==='day'?0:this.mode==='night'?.85:.18);}
  override getCustomCode(type:string):Record<string,string>|null{
   if(type==='vertex')return {
    CUSTOM_VERTEX_DEFINITIONS:'attribute vec4 tencentWindow;\nvarying vec4 vTencentWindow;',
@@ -59,7 +59,9 @@ export class TencentWindowLighting extends MaterialPluginBase{
 vec2 edge=min(vTencentWindow.xy,1.-vTencentWindow.xy);
 float paneMask=smoothstep(.015,.055,edge.x)*smoothstep(.015,.055,edge.y);
 vec3 roomColor=mix(vec3(.85,.92,1.),vec3(1.,.86,.66),vTencentWindow.z);
-finalEmissive+=roomColor*tencentWindowHDR*vTencentWindow.w*paneMask;
+float pixelSpan=max(length(dFdx(vTencentWindow.xy)),length(dFdy(vTencentWindow.xy)));
+float resolved=1.-smoothstep(.12,.55,pixelSpan);
+finalEmissive+=roomColor*tencentWindowHDR*vTencentWindow.w*paneMask*resolved;
 `,
   };
  }

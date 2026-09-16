@@ -1,0 +1,102 @@
+{
+  "version": "0.6",
+  "generator": "openstreetmap-cgimap 2.1.0 (3498760 spike-06.openstreetmap.org)",
+  "copyright": "OpenStreetMap and contributors",
+  "attribution": "http://www.openstreetmap.org/copyright",
+  "license": "http://opendatacommons.org/licenses/odbl/1-0/",
+  "elements": [
+    {
+      "type": "node",
+      "id": 13004534904,
+      "lat": 22.5151355,
+      "lon": 113.9359904,
+      "timestamp": "2025-07-16T14:56:28Z",
+      "version": 1,
+      "changeset": 169018252,
+      "user": "samho1234567",
+      "uid": 2574062
+    },
+    {
+      "type": "node",
+      "id": 13004534905,
+      "lat": 22.5150129,
+      "lon": 113.9364916,
+      "timestamp": "2025-07-16T14:56:28Z",
+      "version": 1,
+      "changeset": 169018252,
+      "user": "samho1234567",
+      "uid": 2574062
+    },
+    {
+      "type": "node",
+      "id": 13004534906,
+      "lat": 22.5153862,
+      "lon": 113.9365986,
+      "timestamp": "2025-07-16T14:56:28Z",
+      "version": 1,
+      "changeset": 169018252,
+      "user": "samho1234567",
+      "uid": 2574062
+    },
+    {
+      "type": "node",
+      "id": 13004534907,
+      "lat": 22.5155088,
+      "lon": 113.9360974,
+      "timestamp": "2025-07-16T14:56:28Z",
+      "version": 1,
+      "changeset": 169018252,
+      "user": "samho1234567",
+      "uid": 2574062
+    },
+    {
+      "type": "node",
+      "id": 13004534908,
+      "lat": 22.5150657,
+      "lon": 113.9359704,
+      "timestamp": "2025-07-16T14:56:28Z",
+      "version": 1,
+      "changeset": 169018252,
+      "user": "samho1234567",
+      "uid": 2574062
+    },
+    {
+      "type": "node",
+      "id": 13004534909,
+      "lat": 22.5149431,
+      "lon": 113.9364715,
+      "timestamp": "2025-07-16T14:56:28Z",
+      "version": 1,
+      "changeset": 169018252,
+      "user": "samho1234567",
+      "uid": 2574062
+    },
+    {
+      "type": "way",
+      "id": 1415189514,
+      "timestamp": "2025-07-16T14:56:28Z",
+      "version": 1,
+      "changeset": 169018252,
+      "user": "samho1234567",
+      "uid": 2574062,
+      "nodes": [
+        13004534908,
+        13004534904,
+        13004534907,
+        13004534906,
+        13004534905,
+        13004534909,
+        13004534908
+      ],
+      "tags": {
+        "building": "construction",
+        "building:levels": "32",
+        "building:levels:underground": "4",
+        "building:material": "glass",
+        "construction": "commercial",
+        "height": "150",
+        "name": "深圳字节跳动后海中心"
+      }
+    }
+  ]
+}
